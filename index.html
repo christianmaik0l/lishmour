@@ -10,18 +10,19 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
 <style>
   :root{
-    --bg:#0E1116;
-    --surface:#141922;
-    --surface-2:#1B2230;
-    --border:#262E3B;
-    --text:#E9E7E1;
-    --text-dim:#8B93A4;
-    --text-faint:#5B6472;
-    --amber:#C9A227;
-    --amber-soft:rgba(201,162,39,0.14);
-    --teal:#4C9C90;
-    --teal-soft:rgba(76,156,144,0.14);
-    --danger:#B4543A;
+    --bg:#333333;
+    --surface:#474747;
+    --surface-2:#525252;
+    --border:#5A5A5A;
+    --text:#F0F0F0;
+    --text-dim:#ABABAB;
+    --text-faint:#7A7A7A;
+    --amber:#00E5FF;
+    --amber-soft:rgba(0,229,255,0.14);
+    --teal:#0EA5B8;
+    --teal-soft:rgba(14,165,184,0.16);
+    --danger:#FF5C5C;
+    --glow:0 0 12px rgba(0,229,255,0.35);
     --f-display:'Fraunces',serif;
     --f-mono:'IBM Plex Mono',monospace;
     --f-body:'Inter',sans-serif;
@@ -62,6 +63,7 @@
     font-weight:600;
     letter-spacing:0.01em;
     margin:0;
+    text-shadow:0 0 22px rgba(0,229,255,0.18);
   }
   .pin-heb{
     font-family:var(--f-mono);
@@ -88,7 +90,7 @@
     width:220px;
     transition:border-color 0.2s;
   }
-  #pin-input:focus{border-bottom-color:var(--amber);}
+  #pin-input:focus{border-bottom-color:var(--amber);box-shadow:0 4px 12px -2px rgba(0,229,255,0.4);}
   #pin-error{
     display:none;
     color:var(--danger);
@@ -98,7 +100,7 @@
   }
   #pin-submit{
     background:var(--amber);
-    color:#0E1116;
+    color:var(--bg);
     border:none;
     padding:0.75rem 2.25rem;
     font-family:var(--f-mono);
@@ -107,9 +109,9 @@
     letter-spacing:0.12em;
     border-radius:2px;
     cursor:pointer;
-    transition:opacity 0.15s;
+    transition:opacity 0.15s,box-shadow 0.15s;
   }
-  #pin-submit:hover{opacity:0.85;}
+  #pin-submit:hover{opacity:0.9;box-shadow:var(--glow);}
 
   /* ---------- APP SHELL ---------- */
   #app{display:none;opacity:0;transition:opacity 0.5s ease;}
@@ -133,6 +135,7 @@
   }
   .watch-dot{
     width:6px;height:6px;border-radius:50%;background:var(--amber);
+    box-shadow:0 0 6px 1px rgba(0,229,255,0.6);
     animation:pulse 2.2s ease-in-out infinite;
   }
   @keyframes pulse{
@@ -234,9 +237,11 @@
     vertical-align:middle;margin-right:0.4rem;border:1px solid var(--border);
   }
   .btn-primary{
-    background:var(--amber);color:#0E1116;border:none;padding:0.6rem 1.4rem;
+    background:var(--amber);color:var(--bg);border:none;padding:0.6rem 1.4rem;
     border-radius:4px;font-family:var(--f-mono);font-size:0.78rem;letter-spacing:0.04em;cursor:pointer;
+    transition:box-shadow 0.15s;
   }
+  .btn-primary:hover{box-shadow:var(--glow);}
   .btn-ghost{
     background:transparent;border:1px solid var(--border);color:var(--text-dim);
     padding:0.6rem 1.4rem;border-radius:4px;font-family:var(--f-mono);font-size:0.78rem;cursor:pointer;
@@ -254,7 +259,22 @@
   tbody tr:last-child td{border-bottom:none;}
   .tag-politico{color:var(--amber);font-weight:500;}
   .tag-pagina{color:var(--teal);}
-  .cell-notas{color:var(--text-dim);max-width:220px;}
+  .cell-notas{color:var(--text-dim);max-width:280px;}
+  .notas-content{
+    display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;
+    overflow:hidden;cursor:pointer;line-height:1.45;
+  }
+  .notas-content.expanded{display:block;-webkit-line-clamp:unset;overflow:visible;}
+  .row-actions{display:flex;gap:0.65rem;justify-content:flex-end;white-space:nowrap;}
+  .edit-link{
+    background:none;border:none;color:var(--teal);font-family:var(--f-mono);
+    font-size:0.72rem;cursor:pointer;padding:0;
+  }
+  .edit-link:hover{color:var(--amber);}
+  .edit-hint{
+    font-family:var(--f-mono);font-size:0.72rem;color:var(--amber);
+    align-self:center;margin-right:auto;
+  }
   .link-icon{color:var(--text-dim);text-decoration:none;font-size:1rem;}
   .link-icon:hover{color:var(--amber);}
   .dash{color:var(--text-faint);}
@@ -280,7 +300,7 @@
   }
   .graph-legend{
     position:absolute;bottom:1rem;left:1.25rem;display:flex;gap:1.25rem;
-    background:rgba(20,25,34,0.85);padding:0.6rem 1rem;border-radius:6px;
+    background:rgba(51,51,51,0.85);padding:0.6rem 1rem;border-radius:6px;
     border:1px solid var(--border);backdrop-filter:blur(4px);
   }
   .legend-item{display:flex;align-items:center;gap:0.4rem;font-family:var(--f-mono);font-size:0.68rem;color:var(--text-dim);}
@@ -335,13 +355,15 @@
   .buscar-box{display:flex;gap:0.6rem;width:100%;max-width:560px;}
   .buscar-box input{
     flex:1;min-width:0;background:var(--surface);border:1px solid var(--border);color:var(--text);
-    padding:0.85rem 1.2rem;border-radius:24px;font-size:0.95rem;
+    padding:0.85rem 1.2rem;border-radius:24px;font-size:0.95rem;transition:box-shadow 0.15s;
   }
-  .buscar-box input:focus{border-color:var(--amber);}
+  .buscar-box input:focus{border-color:var(--amber);box-shadow:var(--glow);}
   .buscar-box button{
-    background:var(--amber);color:#0E1116;border:none;padding:0.7rem 1.6rem;
+    background:var(--amber);color:var(--bg);border:none;padding:0.7rem 1.6rem;
     border-radius:24px;font-family:var(--f-mono);font-size:0.82rem;cursor:pointer;white-space:nowrap;
+    transition:box-shadow 0.15s;
   }
+  .buscar-box button:hover{box-shadow:var(--glow);}
   .buscar-section{margin-bottom:2rem;}
   .buscar-section:empty{display:none;}
 
@@ -399,7 +421,7 @@
   .news-search{display:flex;gap:0.75rem;margin-bottom:1.5rem;}
   .news-search input{flex:1;}
   .btn-search{
-    background:var(--amber);color:#0E1116;border:none;padding:0.7rem 1.6rem;
+    background:var(--amber);color:var(--bg);border:none;padding:0.7rem 1.6rem;
     border-radius:4px;font-family:var(--f-mono);font-size:0.8rem;cursor:pointer;white-space:nowrap;
   }
   .news-results{
@@ -548,6 +570,7 @@
             <label for="f-pagina">Página de Facebook</label>
             <input id="f-pagina" type="text" placeholder="Nombre de la página">
             <span class="field-error" id="f-pagina-error">Este campo es obligatorio</span>
+            <span class="field-error" id="dup-error" style="display:none;"></span>
           </div>
           <div class="field">
             <label for="f-admin">Administrador</label>
@@ -686,6 +709,7 @@
   let entries = [];
   let currentTab = "buscar";
   let lastDeleted = null;
+  let editingId = null;
   let toastTimer = null;
   let userRole = null; // "admin" | "user"
 
@@ -930,14 +954,25 @@
         <td>${e.fotoAdmin ? `<img class="mini-avatar" src="${escapeHtml(e.fotoAdmin)}" alt="">` : ""}${escapeHtml(e.admin) || '<span class="dash">—</span>'}</td>
         <td class="tag-politico">${e.fotoPolitico ? `<img class="mini-avatar" src="${escapeHtml(e.fotoPolitico)}" alt="">` : ""}${escapeHtml(e.politico) || '<span class="dash">—</span>'}</td>
         <td>${e.link ? `<a class="link-icon" href="${escapeHtml(e.link)}" target="_blank" rel="noopener">↗</a>` : '<span class="dash">—</span>'}</td>
-        <td class="cell-notas">${escapeHtml(e.notas) || '<span class="dash">—</span>'}</td>
-        <td>${userRole === "admin" ? `<button class="delete-link" data-id="${e.id}">Eliminar</button>` : ""}</td>
+        <td class="cell-notas">${e.notas ? `<div class="notas-content" data-id="${e.id}">${escapeHtml(e.notas)}</div>` : '<span class="dash">—</span>'}</td>
+        <td>${userRole === "admin" ? `
+          <div class="row-actions">
+            <button class="edit-link" data-id="${e.id}">Editar</button>
+            <button class="delete-link" data-id="${e.id}">Eliminar</button>
+          </div>` : ""}</td>
       </tr>
     `).join("");
+
+    body.querySelectorAll(".notas-content").forEach(el => {
+      el.addEventListener("click", () => el.classList.toggle("expanded"));
+    });
 
     if (userRole === "admin") {
       body.querySelectorAll(".delete-link").forEach(btn => {
         btn.addEventListener("click", () => deleteEntry(btn.dataset.id));
+      });
+      body.querySelectorAll(".edit-link").forEach(btn => {
+        btn.addEventListener("click", () => startEditEntry(btn.dataset.id));
       });
     }
   }
@@ -996,6 +1031,9 @@
       resetPhotoPreviews();
       form.classList.remove("open");
       document.getElementById("f-pagina-error").style.display = "none";
+      document.getElementById("dup-error").style.display = "none";
+      editingId = null;
+      setFormMode("add");
     });
 
     form.addEventListener("submit", async (e) => {
@@ -1008,8 +1046,17 @@
       }
       document.getElementById("f-pagina-error").style.display = "none";
 
-      entries.push({
-        id: uid(),
+      const dupErrorEl = document.getElementById("dup-error");
+      const dup = entries.find(en => en.id !== editingId && en.pagina.trim().toLowerCase() === pagina.toLowerCase());
+      if (dup) {
+        dupErrorEl.innerHTML = 'Ya existe un registro con esta página. <button type="button" id="dup-edit-btn" class="edit-link" style="text-decoration:underline;">Editar ese registro</button>';
+        dupErrorEl.style.display = "block";
+        document.getElementById("dup-edit-btn").addEventListener("click", () => startEditEntry(dup.id));
+        return;
+      }
+      dupErrorEl.style.display = "none";
+
+      const values = {
         pagina,
         admin: document.getElementById("f-admin").value.trim(),
         politico: document.getElementById("f-politico").value.trim(),
@@ -1017,9 +1064,16 @@
         notas: document.getElementById("f-notas").value.trim(),
         fotoAdmin: document.getElementById("f-foto-admin").value.trim(),
         fotoPolitico: document.getElementById("f-foto-politico").value.trim(),
-        logoPagina: document.getElementById("f-logo-pagina").value.trim(),
-        fecha: new Date().toISOString()
-      });
+        logoPagina: document.getElementById("f-logo-pagina").value.trim()
+      };
+
+      if (editingId) {
+        const entry = entries.find(en => en.id === editingId);
+        if (entry) Object.assign(entry, values);
+        editingId = null;
+      } else {
+        entries.push({ id: uid(), ...values, fecha: new Date().toISOString() });
+      }
 
       await saveEntries();
       renderStats();
@@ -1030,7 +1084,56 @@
       form.reset();
       resetPhotoPreviews();
       form.classList.remove("open");
+      setFormMode("add");
     });
+  }
+
+  function setFormMode(mode) {
+    const submitBtn = document.querySelector('#add-form button[type="submit"]');
+    const cancelBtn = document.getElementById("cancel-form-btn");
+    const existingHint = document.getElementById("edit-hint");
+    if (mode === "edit") {
+      submitBtn.textContent = "Guardar cambios";
+      if (!existingHint) {
+        const hint = document.createElement("span");
+        hint.id = "edit-hint";
+        hint.className = "edit-hint";
+        hint.textContent = "Editando registro existente";
+        cancelBtn.insertAdjacentElement("beforebegin", hint);
+      }
+    } else {
+      submitBtn.textContent = "Guardar registro";
+      if (existingHint) existingHint.remove();
+    }
+  }
+
+  function updatePhotoPreviews() {
+    document.querySelectorAll('.photo-row input[type="text"]').forEach(input => {
+      const preview = document.getElementById(input.dataset.preview);
+      if (preview) preview.style.backgroundImage = input.value.trim() ? `url("${input.value.trim()}")` : "";
+    });
+  }
+
+  function startEditEntry(id) {
+    const entry = entries.find(e => e.id === id);
+    if (!entry) return;
+    editingId = id;
+    document.querySelector('.tab-btn[data-tab="db"]').click();
+    const form = document.getElementById("add-form");
+    form.classList.add("open");
+    document.getElementById("f-pagina").value = entry.pagina || "";
+    document.getElementById("f-admin").value = entry.admin || "";
+    document.getElementById("f-politico").value = entry.politico || "";
+    document.getElementById("f-link").value = entry.link || "";
+    document.getElementById("f-notas").value = entry.notas || "";
+    document.getElementById("f-foto-admin").value = entry.fotoAdmin || "";
+    document.getElementById("f-foto-politico").value = entry.fotoPolitico || "";
+    document.getElementById("f-logo-pagina").value = entry.logoPagina || "";
+    updatePhotoPreviews();
+    document.getElementById("f-pagina-error").style.display = "none";
+    document.getElementById("dup-error").style.display = "none";
+    setFormMode("edit");
+    document.getElementById("f-pagina").focus();
   }
 
   async function deleteEntry(id) {
@@ -1246,6 +1349,16 @@
       pagina = "";
     }
 
+    // Si esta página ya está en Base de datos, abre ese registro para editarlo
+    // en vez de crear uno duplicado.
+    if (pagina) {
+      const dup = entries.find(en => en.pagina.trim().toLowerCase() === pagina.trim().toLowerCase());
+      if (dup) {
+        startEditEntry(dup.id);
+        return;
+      }
+    }
+
     // El resto de columnas de esa hoja se empacan como contexto en notas.
     const extras = [];
     cached.headers.forEach((h, i) => {
@@ -1256,6 +1369,8 @@
     document.querySelector('.tab-btn[data-tab="db"]').click();
     const form = document.getElementById("add-form");
     form.classList.add("open");
+    editingId = null;
+    setFormMode("add");
     document.getElementById("f-pagina").value = pagina;
     document.getElementById("f-admin").value = admin;
     document.getElementById("f-link").value = link;
@@ -1266,6 +1381,7 @@
     document.getElementById("f-logo-pagina").value = "";
     resetPhotoPreviews();
     document.getElementById("f-pagina-error").style.display = "none";
+    document.getElementById("dup-error").style.display = "none";
     document.getElementById("f-politico").focus();
   }
 
